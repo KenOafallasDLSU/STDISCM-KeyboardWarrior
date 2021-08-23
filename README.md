@@ -7,7 +7,10 @@ Step 2: `npm run serve`
 
 Step 3: go to localhost:8080
 
-## Add-ons
+## Add-ons/Dependencies
+### Database
+Firebase (for Firestore)
+
 ### HTTP Client/API
 Axios <-- Love me some Axios
 
@@ -19,7 +22,7 @@ Boostrap
 SASS
 
 ### Routing
-vuex-router <-- important
+vue-router <-- important
 
 ### States
 vuex
