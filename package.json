@@ -1,0 +1,29 @@
+{
+  "name": "stdiscm-keyboardwarrior",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "bootstrap": "^5.1.0",
+    "bootstrap-vue": "^2.21.2",
+    "core-js": "^3.16.2",
+    "firebase": "^8.10.0",
+    "vue": "^2.6.11",
+    "vue-async-computed": "^3.9.0",
+    "vue-persist": "^0.4.0",
+    "vue-router": "^3.2.0",
+    "vuex": "^3.4.0",
+    "vuex-persist": "^3.1.3"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-router": "~4.5.0",
+    "@vue/cli-plugin-vuex": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "sass": "^1.26.5",
+    "sass-loader": "^8.0.2",
+    "vue-template-compiler": "^2.6.11"
+  }
+}
