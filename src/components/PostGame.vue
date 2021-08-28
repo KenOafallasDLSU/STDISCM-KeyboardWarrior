@@ -16,8 +16,14 @@
                 <div v-else>Better luck next time!</div>
             </div>
             <div>
-                <button v-bind:style= "[winner ? {'background-color':'tomato'} : {'background-color':'#63A6FD'}]">play again</button>
-                <button v-bind:style= "[winner ? {'background-color':'tomato'} : {'background-color':'#63A6FD'}]">exit</button>
+                <button v-on:click="play" 
+                    v-bind:style= "[winner ? {'background-color':'tomato'} : {'background-color':'#63A6FD'}]">
+                    play again
+                </button>
+                <button v-on:click="exit" 
+                    v-bind:style= "[winner ? {'background-color':'tomato'} : {'background-color':'#63A6FD'}]">
+                    exit
+                </button>
             </div>
         </modal>
     </div>
@@ -59,79 +65,39 @@ button {
 }
 
 .tada {
-  -webkit-animation-duration: 1s;
   animation-duration: 1s;
-  -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
-
-  -webkit-animation-name: tada;
   animation-name: tada;
 }
 .tada:hover {
-  -webkit-animation-iteration-count: infinite;
   animation-iteration-count: infinite;
-}
-@-webkit-keyframes tada {
-  0% {
-    -webkit-transform: scale3d(1, 1, 1);
-    transform: scale3d(1, 1, 1);
-  }
-
-  10%, 20% {
-    -webkit-transform: scale3d(.9, .9, .9) rotate3d(0, 0, 1, -3deg);
-    transform: scale3d(.9, .9, .9) rotate3d(0, 0, 1, -3deg);
-  }
-
-  30%, 50%, 70%, 90% {
-    -webkit-transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
-    transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
-  }
-
-  40%, 60%, 80% {
-    -webkit-transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
-    transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
-  }
-
-  100% {
-    -webkit-transform: scale3d(1, 1, 1);
-    transform: scale3d(1, 1, 1);
-  }
 }
 @keyframes tada {
   0% {
-    -webkit-transform: scale3d(1, 1, 1);
-    -ms-transform: scale3d(1, 1, 1);
     transform: scale3d(1, 1, 1);
   }
-
   10%, 20% {
-    -webkit-transform: scale3d(.9, .9, .9) rotate3d(0, 0, 1, -3deg);
-    -ms-transform: scale3d(.9, .9, .9) rotate3d(0, 0, 1, -3deg);
     transform: scale3d(.9, .9, .9) rotate3d(0, 0, 1, -3deg);
   }
-
   30%, 50%, 70%, 90% {
-    -webkit-transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
-    -ms-transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
     transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
   }
-
   40%, 60%, 80% {
-    -webkit-transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
-    -ms-transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
     transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
   }
-
   100% {
-    -webkit-transform: scale3d(1, 1, 1);
-    -ms-transform: scale3d(1, 1, 1);
     transform: scale3d(1, 1, 1);
   }
 }
-
 </style>
 
 <script>
+import db from '@/firebase'
+import { doc, deleteDoc } from "firebase/firestore";
+
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+
 export default {
     methods: {
         show() {
@@ -139,10 +105,44 @@ export default {
         },
         hide() {
             this.$modal.hide('modal-post');
+        },
+        play: function() {
+            // put user back in waiting queue
+            db.collection('Users')
+                .doc(this.id)
+                .get().then(() => {
+                    var user = { id: this.id }
+                    db.collection('Waiting Room').add(user)
+                        .then(function(docRef) {
+                            console.log(user.id)
+                            console.log(docRef.id)
+                            console.log("Document successfully added!");
+                        })
+                        .catch(() => {
+                            console.error("Error adding document: ", error);
+                        })
+                })
+            
+            // redirect to waiting screen?
+        },
+        exit: function() {
+            // delete user from db
+            db.collection('Users').doc(this.id).delete().then(() => {
+                console.log("Document successfully deleted!");
+
+                // redirect to homepage
+                const path = "/"
+                if (this.$route.path !== path) this.$router.push(path)
+
+                this.hide()
+            }).catch((error) => {
+                console.error("Error removing document: ", error);
+            });
         }
     },
-    data: () => {
+    data: function() {
         return {
+            id: 'ZjOwRcGT4MUPRX58SRL4', // for testingg
             winner: true
         }
     }
