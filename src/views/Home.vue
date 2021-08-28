@@ -105,16 +105,14 @@ export default {
           }
 
         })
-
+        
         e.preventDefault()
-
     }
   }
 }
 </script>
 
 <style>
-
 .error {
   font-size: 1em;
 }
