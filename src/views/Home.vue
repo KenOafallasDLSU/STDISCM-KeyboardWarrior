@@ -26,6 +26,8 @@
           <b-icon icon="play-fill"></b-icon>
         </b-button>
 
+        <modal-post/>
+
       </b-form></div>
 
     </div>
@@ -39,8 +41,13 @@ import { query, where } from "firebase/firestore";
 
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import ModalPost from '../components/PostGame.vue'
+
 export default {
   name: 'Home',
+  components: {
+    ModalPost
+  },
   data: function() {
     return {
       Name: '',
