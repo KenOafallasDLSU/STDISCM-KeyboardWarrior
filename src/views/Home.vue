@@ -11,7 +11,15 @@
       </div>
 
       <div><b-form class="name-input-form">
-        
+
+        <div v-if="errors.length" class="error red">
+            <span v-for="error in errors" v-bind:key="error" class="error red">
+              <b-icon icon="exclamation-triangle" variant="danger"></b-icon>
+              Error: {{ error }} 
+            </span>
+        </div>
+        <div v-else><br/></div>
+
         <b-form-input
           v-model="Name"
           id="input-name"
@@ -26,8 +34,6 @@
           <b-icon icon="play-fill"></b-icon>
         </b-button>
 
-        <modal-post/>
-
       </b-form></div>
 
     </div>
@@ -41,22 +47,25 @@ import { query, where } from "firebase/firestore";
 
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import ModalPost from '../components/PostGame.vue'
 
 export default {
   name: 'Home',
-  components: {
-    ModalPost
-  },
   data: function() {
     return {
+      errors: [],
       Name: '',
     }
   },
   methods: {
     register: function(e){
       
-      e.preventDefault()
+      this.errors = []
+      
+      if (this.Name == '') {
+        console.log("Name cannot be empty.")
+        this.errors.push("Name cannot be empty.")
+        return
+      }
       
       // check if name is unique
       db.collection('Users')
@@ -66,7 +75,10 @@ export default {
           // if unique, add user to db
           if (snapshot.size == 0) {
               
-              const user = { Name: this.Name }
+              const user = { 
+                Name: this.Name,
+                Timestamp: firebase.firestore.FieldValue.serverTimestamp()
+              }
               db.collection('Users').add(user)
                 .then(function(docRef) {
 
@@ -80,25 +92,31 @@ export default {
                     })
                     .catch(() => {
                       console.error("Error adding reference: ", error);
+                      this.errors.push('Failed adding user to the waiting room.')
                     })
 
                 })
                 .catch(function(error) {
                     console.error("Error adding document: ", error);
+                    this.errors.push('Failed registering user.')
                 })
 
           } else {
             console.log('Name already exists.')
+            this.errors.push('Name already taken.')
           }
 
         })
+        e.preventDefault()
     }
   }
 }
 </script>
 
 <style>
-
+.error {
+  font-size: 1em;
+}
 .btn-start{
   height: 3em;
   width: 6em;
@@ -108,18 +126,21 @@ export default {
   font-size: 1.5em;
   display: flex;
   align-items: center;
-  margin: 0.5em;
   width: 50%;
+  margin: 0.5em;
+  margin-top: 0.1em;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
   background-color: rgba(255, 255, 255, 0.5);
   border-radius: 1em;
 }
-
+.form-input-name::placeholder {
+  color: darkgray;
+}
 .home {
   height: 100vh;
-  padding: 2em;
+  padding: 1.5em;
   color: rgb(50, 50, 50);
   background-color:whitesmoke;
   font-family: 'Courier New', monospace;
