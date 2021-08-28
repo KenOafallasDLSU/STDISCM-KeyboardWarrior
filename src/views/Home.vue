@@ -41,10 +41,8 @@
 </template>
 
 <script>
-import firebase from 'firebase'
 import db from '@/firebase'
-import { query, where } from "firebase/firestore";  
-
+import firebase from 'firebase'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
@@ -107,6 +105,7 @@ export default {
           }
 
         })
+        
         e.preventDefault()
     }
   }
@@ -117,6 +116,7 @@ export default {
 .error {
   font-size: 1em;
 }
+
 .btn-start{
   height: 3em;
   width: 6em;
@@ -135,9 +135,11 @@ export default {
   background-color: rgba(255, 255, 255, 0.5);
   border-radius: 1em;
 }
+
 .form-input-name::placeholder {
   color: darkgray;
 }
+
 .home {
   height: 100vh;
   padding: 1.5em;
