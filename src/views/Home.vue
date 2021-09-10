@@ -141,18 +141,22 @@ export default {
 }
 
 .home {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 100vh;
-  padding: 1.5em;
   color: rgb(50, 50, 50);
-  background-color:whitesmoke;
-  font-family: 'Courier New', monospace;
+  background-color:tomato;
+  font-family: 'Montserrat';
+  font-weight: bold;
 }
 
 .titlecard{
+  width: 90%;
   margin: 0;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 1);
   border-radius: 10em;
-  padding: 9em;
+  padding: 7em;
   box-shadow: -5px 10px 10px #00000062;
 }
 
@@ -182,11 +186,11 @@ export default {
     alternate;
   white-space: nowrap;
   overflow: hidden;
-  border-right: 0.05em solid;
+  border-right: 0.1em solid;
   font-size: 5em;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 1em;
-  height: fit-content;
+  height: 1.3em;
 }
 
 @keyframes float {
