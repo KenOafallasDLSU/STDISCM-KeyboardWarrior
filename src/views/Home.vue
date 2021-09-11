@@ -43,6 +43,7 @@
 <script>
 import db from '@/firebase'
 import firebase from 'firebase'
+import router from './../router'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
@@ -51,7 +52,7 @@ export default {
   data: function() {
     return {
       errors: [],
-      Name: '',
+      Name: ''
     }
   },
   methods: {
@@ -85,17 +86,18 @@ export default {
                   // push user to the waiting room
                   const reference = { User: docRef }
                   db.collection('Waiting Room').add(reference)
-                    .then(() => {
-                      console.log('Added ' + reference.id + ' to waiting room.')
+                    .then((docRef) => {
+                      console.log('Added ' + docRef.id + ' to waiting room.')
+                      const path = '/matching'
+                      console.log('Start matching...')
+                      router.push(path).catch(()=>{})
                     })
                     .catch(() => {
-                      console.error("Error adding reference: ", error);
-                      this.errors.push('Failed adding user to the waiting room.')
+                      console.error("Error adding reference.");
                     })
-
                 })
-                .catch(function(error) {
-                    console.error("Error adding document: ", error);
+                .catch(() => {
+                    console.error("Error adding document");
                     this.errors.push('Failed registering user.')
                 })
 
@@ -146,7 +148,9 @@ export default {
   justify-content: center;
   height: 100vh;
   color: rgb(50, 50, 50);
-  background-color:tomato;
+  background: linear-gradient(0deg, rgb(255, 99, 71), rgba(255, 99, 71, 0.25)), url("./../../public/keyboardbg.png");
+  background-size: cover;
+  background-color: tomato;
   font-family: 'Montserrat';
   font-weight: bold;
 }
