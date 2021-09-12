@@ -6,8 +6,11 @@ const actions = {
   async setUser({ commit }, {userID, username}) {
     commit('setUserLoggedIn', true)
     commit('setUserID', userID)
-    console.log(username)
     commit('setUserName', username)
+  },
+
+  async setRoomID({ commit }, roomID) {
+    commit('setRoomID', roomID)
   },
 
   /**
