@@ -9,6 +9,10 @@ const mutations = {
 
   setUserName(state, username) {
     state.user.name = username
+  },
+
+  setRoomID(state, roomID) {
+    state.roomID = roomID
   }
 }
 
