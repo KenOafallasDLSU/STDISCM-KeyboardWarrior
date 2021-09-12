@@ -1,11 +1,14 @@
 <template>
   <div class="home">
     <div class="titlecard">
-      <b-spinner variant="dark" class="spinner"></b-spinner>
+      <b-spinner variant="dark" class="spinner" v-show="!isMatched"></b-spinner>
       
       <div class="wrapper">
-          <div class="title">
+          <div class="title" v-show="!isMatched">
             Finding <span class="red">Opponent</span>.<span class="red">.</span>.
+          </div>
+          <div class="title" v-show="isMatched">
+            Match <span class="red">Found</span>!
           </div>
       </div>
     </div>
@@ -13,46 +16,147 @@
 </template>
 
 <script>
+import db from '@/firebase'
+import firebase from 'firebase'
+
 export default {
   name: 'Matchmaking',
   data() {
     return {
+      isMatched: false,
       matchmakerUnsubscribe: null
     }
   },
   methods: {
+    /**
+     * main matchmaking function
+     * matches current user with another user
+     */
     matchmake: async function() {
-      var currentRoom = await this.findRoom()
-
-      if(currentRoom === null){
-        currentRoom = await this.createRoom()
-        this.waitForMatch()
+      await this.sleepForFluff(3000)
+      let currentRoomID = await this.findUnmatchedRoomID()
+      
+      if(currentRoomID === null){ //when no unmatched room exists
+        console.log("Waiting for Match!")
+        currentRoomID = await this.createRoom()
+        this.waitForMatch(currentRoomID)
+      } else{ //when an unmatched room is found
+        console.log("Match Found!")
+        this.isMatched = true
+        this.matchFound(this.$store.getters['auth/getCurrentUserID'], currentRoomID)
+        await this.sleepForFluff(2000)
+        this.goToGame()
       }
     },
 
-    findRoom: async function() {
+    /**
+     * Returns the oldest unmatched room ID
+     */
+    findUnmatchedRoomID: async function() {
       //check if there is a room waiting
+      const query = db.collection('Rooms').where("matched", "==", false).orderBy("timeCreated", "asc").limit(1)
+      const doc = await query.get()
+      if(!doc.empty) {
+        console.log("Room: " + doc.docs[0].id)
+        return doc.docs[0].id
+      } else return null
     },
 
+    /**
+     * creates a room with a random challenge string and the current logged in user as user1
+     * returns that room's id
+     */
     createRoom: async function() {
-      //make random room stuff
+      //get a random challenge paragraph
+      let paragraphID = await this.getRandomParagraphID()
 
-      //put user in a room
+      //add new room to collection
+      const newRoom = await db.collection('Rooms').add({
+        challengeString:  db.doc('Paragraphs/' + paragraphID),
+        matched: false,
+        progress1: 0,
+        progress2: 0,
+        user1:  db.doc('Users/' + this.$store.getters['auth/getCurrentUserID']),
+        user2:  db.doc('Users/' + 'nil'),
+        timeCreated: firebase.firestore.FieldValue.serverTimestamp()
+      })
+
+      return newRoom.id
     },
 
-    waitForMatch: function() {
-      this.matchmakerUnsubscribe = timersCollection
-        .doc(timerID)
+    /**
+     * returns a random paragraph ID
+     */
+    getRandomParagraphID: async function() {
+      const paragraphID = "7WAASLXDr19D01wLz2Fn"
+      const query = db.collection('Paragraphs').doc(paragraphID)
+      const doc = await query.get()
+
+      if(doc.exists) {
+        console.log(doc.data())
+        return doc.id
+      } else return null
+    },
+
+    /**
+     * subscribes to the room for a user2 to enter
+     * then adds that user to the current room
+     * @param roomID - room to add user to
+     */
+    waitForMatch: async function(roomID) {
+      console.log("waiting for match in: " + roomID)
+      this.matchmakerUnsubscribe = db.collection('Rooms')
+        .doc(roomID)
         .onSnapshot(async doc => {
+          console.log(`Received doc snapshot: ${doc}`);
           if (doc.exists) {
-            this.timeInput = doc.data().host_timeLeft
+            if(doc.data().matched) {
+              console.log("Match Found with: " + doc.data().user2.id)
+              this.isMatched = true
+              await this.sleepForFluff(3000)
+              this.goToGame()
+            }
           }
         })
     },
 
-    unsubscribe: function() {
-      this.matchmakerUnsubscribe
+    /**
+     * Adds user to room as user2
+     */
+    matchFound: async function(userID, roomID) {
+      const gameRoom = await db.collection('Rooms')
+        .doc(roomID)
+        .update({
+          matched: true,
+          user2:  db.doc('Users/' + userID)
+        })
+    },
+
+    goToGame: function() {
+      if(this.matchmakerUnsubscribe !== null)
+        this.unsubscribe()
+
+      //redirect to game
+    },
+
+    /**
+     * unsubscribes from the waiting room
+     */
+    unsubscribe: async function() {
+      this.matchmakerUnsubscribe()
+    },
+
+    /**
+     * Forces the app to wait so we can see the nice animations <3
+     */
+    sleepForFluff: function(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
+  },
+
+  async mounted () {
+    console.log(this.$store.getters['auth/getCurrentUserName'])
+    this.matchmake()
   }
 }
 </script>
