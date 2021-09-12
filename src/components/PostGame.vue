@@ -123,7 +123,9 @@ export default {
                         })
                 })
             
-            // redirect to waiting screen?
+            // redirect to waiting screen
+            const path = "/matching"
+            if (this.$route.path !== path) this.$router.push(path)
         },
         exit: function() {
             // delete user from db
