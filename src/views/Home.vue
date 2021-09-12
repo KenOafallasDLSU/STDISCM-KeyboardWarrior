@@ -43,18 +43,23 @@
 <script>
 import db from '@/firebase'
 import firebase from 'firebase'
+import router from './../router'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'Home',
   data: function() {
     return {
       errors: [],
-      Name: '',
+      Name: ''
     }
   },
   methods: {
+    ...mapActions({
+      setUser: 'auth/setUser'
+    }),
     register: function(e){
       
       this.errors = []
@@ -77,25 +82,33 @@ export default {
                 Name: this.Name,
                 Timestamp: firebase.firestore.FieldValue.serverTimestamp()
               }
+              console.log(this.Name)
               db.collection('Users').add(user)
-                .then(function(docRef) {
+                .then(docRef => {
 
                   console.log('Added ' + docRef.id + ' to db.')
+
+                  // save user to state
+                  console.log(this.Name)
+                  this.setUser({userID: docRef.id, username: this.Name})
+
+                  //this.$router.push({ name: 'Matchmaking' })
 
                   // push user to the waiting room
                   const reference = { User: docRef }
                   db.collection('Waiting Room').add(reference)
-                    .then(() => {
-                      console.log('Added ' + reference.id + ' to waiting room.')
+                    .then((docRef) => {
+                      console.log('Added ' + docRef.id + ' to waiting room.')
+                      const path = '/matching'
+                      console.log('Start matching...')
+                      router.push(path).catch(()=>{})
                     })
                     .catch(() => {
-                      console.error("Error adding reference: ", error);
-                      this.errors.push('Failed adding user to the waiting room.')
+                      console.error("Error adding reference.");
                     })
-
                 })
-                .catch(function(error) {
-                    console.error("Error adding document: ", error);
+                .catch(() => {
+                    console.error("Error adding document");
                     this.errors.push('Failed registering user.')
                 })
 
@@ -141,18 +154,24 @@ export default {
 }
 
 .home {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 100vh;
-  padding: 1.5em;
   color: rgb(50, 50, 50);
-  background-color:whitesmoke;
-  font-family: 'Courier New', monospace;
+  background: linear-gradient(0deg, rgb(255, 99, 71), rgba(255, 99, 71, 0.25)), url("./../../public/keyboardbg.png");
+  background-size: cover;
+  background-color: tomato;
+  font-family: 'Montserrat';
+  font-weight: bold;
 }
 
 .titlecard{
+  width: 90%;
   margin: 0;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 1);
   border-radius: 10em;
-  padding: 9em;
+  padding: 7em;
   box-shadow: -5px 10px 10px #00000062;
 }
 
@@ -182,11 +201,11 @@ export default {
     alternate;
   white-space: nowrap;
   overflow: hidden;
-  border-right: 0.05em solid;
+  border-right: 0.1em solid;
   font-size: 5em;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 1em;
-  height: fit-content;
+  height: 1.3em;
 }
 
 @keyframes float {
