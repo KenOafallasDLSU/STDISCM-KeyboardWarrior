@@ -45,6 +45,7 @@ import db from '@/firebase'
 import firebase from 'firebase'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'Home',
@@ -55,6 +56,9 @@ export default {
     }
   },
   methods: {
+    ...mapActions({
+      setUser: 'auth/setUser'
+    }),
     register: function(e){
       
       this.errors = []
@@ -77,10 +81,17 @@ export default {
                 Name: this.Name,
                 Timestamp: firebase.firestore.FieldValue.serverTimestamp()
               }
+              console.log(this.Name)
               db.collection('Users').add(user)
-                .then(function(docRef) {
+                .then(docRef => {
 
                   console.log('Added ' + docRef.id + ' to db.')
+
+                  // save user to state
+                  console.log(this.Name)
+                  this.setUser({userID: docRef.id, username: this.Name})
+
+                  //this.$router.push({ name: 'Matchmaking' })
 
                   // push user to the waiting room
                   const reference = { User: docRef }
