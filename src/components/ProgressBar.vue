@@ -1,17 +1,25 @@
 <template>
-  <div class="container" >
-    <div class="progress-bar">
-      <div class="progress-bar-value">{{ this.percentage }}</div>
-      <div class="progress-bar-fill" :style="{ width: fillValue }"></div>
+  <div class="container">
+    <!-- progress for user1 -->
+    <div class="row">
+      <div class="col-lg-2">Guest (You)</div>
+      <div class="col-lg-8">
+        <div class="progress-bar">
+          <div class="progress-bar-value">{{ this.percent1 }}</div>
+          <div class="progress-bar-fill" :style="{ width: fill1 }"></div>
+        </div>
+      </div>
     </div>
     <br />
-    <!-- TESTING -->
-    <div class="text-container">
-      <p class="text">{{ this.paragraph }}</p>
-    </div>
-    <br />
-    <div class="input-container">
-      <textarea class="form-control" id="input-text" v-model="inputText" v-on:keyup="onInputUpdate()"></textarea>
+    <!-- progress for user2 -->
+    <div class="row">
+      <div class="col-lg-2">Guest</div>
+      <div class="col-lg-8">
+        <div class="progress-bar">
+          <div class="progress-bar-value">{{ this.percent2 }}</div>
+          <div class="progress-bar-fill" :style="{ width: fill2 }"></div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -20,67 +28,84 @@
 import db from '@/firebase'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+// import room to get room id
 
 export default {
   created() { // on page load, connect to the db and find the necessary data
     this.getParagraphLength();
+    console.log(this.$route);
   },
   name: 'ProgressBar',
-  // props: {
-  //   paragraphID: String,
-  //   inputText: String,
-  //   userID: String, 
-  //   paragraph: String
-  // },
   methods: {
-
+    // get paragraph length from the db
     getParagraphLength: function() {
       db.collection('Paragraphs')
         .doc(this.paragraphID)
         .get()
         .then(snapshot => {
           this.paragraphLength = snapshot.data().Length;
-          this.paragraph = snapshot.data().Bank; // testing
-
-          this.setValue(0); // default value is 0
+          this.progressListener();
         });
     },
 
-    setValue: function(newValue) {
-      this.barValue = newValue;
-
+    // listener for progress 1 and 2
+    progressListener: async function() {
+      db.collection('Rooms')
+        .doc(this.roomID) // TODO: GET ROOM ID FROM ROUTE PARAMS
+        .onSnapshot(async doc => {
+          this.setValue(doc.data().progress1, doc.data().progress2);
+        });
+    },
+    
+    // sets the value of the progress bar
+    setValue: function(p1_newVal, p2_newVal) {
+      this.bar1 = p1_newVal;
+      this.bar2 = p2_newVal;
       this.updateValue();
     },
 
+    // updates the value of the progress bar with 
+    // respect to the total char count of the paragraph
     updateValue: function() {
-      this.percentage = parseInt(((this.barValue / this.paragraphLength) * 100)) + '%';
-
-      this.updateFill(this.percentage);
+      this.percent1 = computePercentage(this.bar1);
+      this.percent2 = computePercentage(this.bar2);
+      this.updateFill();
     },
 
-    updateFill: function(newFillValue) {
-      this.fillValue = newFillValue;
+    computePercentage: function(value) {
+      return parseInt(((value / this.paragraphLength) * 100)) + '%';
     },
 
-    onInputUpdate: function() {
-      this.setValue(this.inputText.length);
-    }
+    // updates the fill of the progress bar
+    updateFill: function() {
+      this.fill1 = this.percent1;
+      this.fill2 = this.percent2;
+    },
 
-  },
+    // determine winner
+    determineWinner: function() {
+      if (this.bar1 > this.bar2 && this.bar1 == this.paragraphLength) {
+        // user1 is the winner
+      }
+      else {
+        // user2 is the winner
+      }
+    },
 
-  data: function() {
-    return {
-      barValue: 0,
-      fillValue: '',
-      percentage: '',
-      inputText: '', // testing
-      userID: 'sh7hNPQwu0OE6ZYA9L82', // testing
-      paragraphID: 'CysWj5DVHmQOkXxY4IEA', //testing
-      paragraph: '', // testing
-      paragraphLength: 0 // default value is 0
+    data() {
+      return {
+        bar1: 0,
+        bar2: 0,
+        fill1: '',
+        fill2: '',
+        percent1: '',
+        percent2: '',
+        roomID: 'NXQiF0wQwN5qUOZohxe3', // testing, TODO: GET ROOM ID FROM ROUTE PARAMS
+        paragraphLength: 0, // default value is 0
+        paragraphID: '7WAASLXDr19D01wLz2Fn', //testing
+      }
     }
   }
-
 }
 </script>
 
@@ -91,6 +116,7 @@ export default {
   width: 100%;
   height: 40px;
   border: 1px solid rgb(41, 41, 41, 0.2);
+  border-radius: 25px;
   background-color: #fff;
   color: #282828;
 }
@@ -99,6 +125,7 @@ export default {
   height: 100%;
   width: 0;
   background-color: tomato;
+  border-radius: 25px;
   transition : width 1s ease;
 }
 
