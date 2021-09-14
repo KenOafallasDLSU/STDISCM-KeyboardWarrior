@@ -19,6 +19,9 @@
   import CountdownModal from '../components/CountdownModal.vue'
   import PostGame from '../components/PostGame.vue'
   import ProgressBar from '../components/ProgressBar.vue'
+  import { 
+    deleteUserRoom
+  } from '@/resources/errorHandling.js'
   
   export default{
     Name: 'Gameplay',
@@ -85,6 +88,8 @@
           this.isFinished = true
           inputElement.disabled = true;
           result = true
+          this.unsubscribe()
+          deleteUserRoom()
         }
       }),
 
@@ -95,15 +100,23 @@
             if(doc.data().progress2 === this.challengelength){
               this.isFinished = true
               inputElement.disabled = true;
+              this.unsubscribe()
             }
           }
           else if (doc.exists && !this.isPlayer1){
             if(doc.data().progress1 === this.challengelength){
               this.isFinished = true
               inputElement.disabled = true;
+              this.unsubscribe()
             }
           }
         })
+    },
+    methods: {
+      unsubscribe: async function() {
+        if(this.checkOpponentProgress !== null)
+          this.checkOpponentProgress()
+      },
     },
     async created() {
       const roomID = this.$store.getters['auth/getCurrentRoomID']
