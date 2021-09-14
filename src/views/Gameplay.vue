@@ -10,7 +10,7 @@
         <textarea class="userinput" id="userinput" autofocus></textarea>
       </div>
     </div>
-    <PostGame v-if="isFinished"/>
+    <PostGame v-if="isFinished" :winner='result'/>
   </div>
 </template>
 
@@ -19,6 +19,9 @@
   import CountdownModal from '../components/CountdownModal.vue'
   import PostGame from '../components/PostGame.vue'
   import ProgressBar from '../components/ProgressBar.vue'
+  import { 
+    deleteUserRoom
+  } from '@/resources/errorHandling.js'
   
   export default{
     Name: 'Gameplay',
@@ -35,6 +38,7 @@
         isPlayer1: true,
         isFinished: false,
         checkOpponentProgress: null,
+        result: false
       }
     },
     mounted() {
@@ -83,7 +87,9 @@
         if(numCorrect === this.challengelength){
           this.isFinished = true
           inputElement.disabled = true;
-          PostGame.show()
+          result = true
+          this.unsubscribe()
+          deleteUserRoom()
         }
       }),
 
@@ -94,17 +100,23 @@
             if(doc.data().progress2 === this.challengelength){
               this.isFinished = true
               inputElement.disabled = true;
-              PostGame.show()
+              this.unsubscribe()
             }
           }
           else if (doc.exists && !this.isPlayer1){
             if(doc.data().progress1 === this.challengelength){
               this.isFinished = true
               inputElement.disabled = true;
-              PostGame.show()
+              this.unsubscribe()
             }
           }
         })
+    },
+    methods: {
+      unsubscribe: async function() {
+        if(this.checkOpponentProgress !== null)
+          this.checkOpponentProgress()
+      },
     },
     async created() {
       const roomID = this.$store.getters['auth/getCurrentRoomID']

@@ -147,9 +147,11 @@ export default {
     },
     data: function() {
         return {
-            id: this.$store.getters['auth/getCurrentUserID'], //'ZjOwRcGT4MUPRX58SRL4', // for testingg
-            winner: true
+            id: this.$store.getters['auth/getCurrentUserID'] //'ZjOwRcGT4MUPRX58SRL4', // for testingg
         }
+    },
+    props: {
+        winner: Boolean
     }
 }
 </script>
