@@ -197,8 +197,10 @@ export default {
 
   async mounted () {
     const userIsNull = checkIfUserIsNull()
-    if(userIsNull)
+    if(userIsNull) {
+      window.removeEventListener('beforeunload', this.handleExit)
       redirectToHome()
+    }
     else
       this.matchmake()
   }

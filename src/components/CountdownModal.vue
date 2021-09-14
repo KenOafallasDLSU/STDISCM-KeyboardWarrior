@@ -24,10 +24,12 @@
     },
     methods: {
       showModal() {
-        this.$refs['countdown-modal'].show()
+        if(typeof this.$refs['countdown-modal'] !== 'undefined')
+          this.$refs['countdown-modal'].show()
       },
       hideModal() {
-        this.$refs['countdown-modal'].hide()
+        if(typeof this.$refs['countdown-modal'] !== 'undefined')
+          this.$refs['countdown-modal'].hide()
       },
       sleepForFluff: function(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));

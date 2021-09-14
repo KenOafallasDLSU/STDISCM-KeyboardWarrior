@@ -20,6 +20,9 @@
   import PostGame from '../components/PostGame.vue'
   import ProgressBar from '../components/ProgressBar.vue'
   import { 
+    checkIfUserIsNull, 
+    redirectToHome,
+    deleteCurrentUser,
     deleteUserRoom
   } from '@/resources/errorHandling.js'
   
@@ -43,29 +46,38 @@
     },
     mounted() {
       const roomID = this.$store.getters['auth/getCurrentRoomID']
-      
+      const inputElement = document.getElementById('userinput')
       userinput.addEventListener('input', this.checkInput)
 
-      this.checkOpponentProgress = db.collection('Rooms')
-        .doc(roomID)
-        .onSnapshot(async doc => {
-          if(doc.exists && this.isPlayer1){
-            if(doc.data().progress2 === this.challengelength){
+      if(roomID !== null) {
+        this.checkOpponentProgress = db.collection('Rooms')
+          .doc(roomID)
+          .onSnapshot(async doc => {
+            if(doc.exists && this.isPlayer1){
+              if(doc.data().progress2 === this.challengelength){
+                this.isFinished = true
+                inputElement.disabled = true;
+                this.unsubscribe()
+                userinput.removeEventListener('input', this.checkInput)
+              }
+            }
+            else if (doc.exists && !this.isPlayer1){
+              if(doc.data().progress1 === this.challengelength){
+                this.isFinished = true
+                inputElement.disabled = true;
+                this.unsubscribe()
+                userinput.removeEventListener('input', this.checkInput)
+              }
+            }
+            else if(!doc.exists){
               this.isFinished = true
               inputElement.disabled = true;
+              this.result = true
               this.unsubscribe()
               userinput.removeEventListener('input', this.checkInput)
             }
-          }
-          else if (doc.exists && !this.isPlayer1){
-            if(doc.data().progress1 === this.challengelength){
-              this.isFinished = true
-              inputElement.disabled = true;
-              this.unsubscribe()
-              userinput.removeEventListener('input', this.checkInput)
-            }
-          }
-        })
+          })
+      }
     },
     methods: {
       unsubscribe: async function() {
@@ -121,37 +133,59 @@
           deleteUserRoom()
           userinput.removeEventListener('input', this.checkInput)
         }
+      },
+
+      handleExit: function() {
+        userinput.removeEventListener('input', this.checkInput)
+        this.unsubscribe()
+        deleteUserRoom()
+        deleteCurrentUser()
       }
     },
     async created() {
-      const roomID = this.$store.getters['auth/getCurrentRoomID']
-      const queryroom = db.collection('Rooms').doc(roomID)
-      const room = await queryroom.get()
-      
-      const paragraphID = room.data().challengeString.id
-      
-      const query = db.collection('Paragraphs').doc(paragraphID)
-      const doc = await query.get()
-      this.challenge = doc.data().Bank
-      this.challengelength = doc.data().Length
-      
-      if (room.data().user1.id === this.$store.getters['auth/getCurrentUserID'])
-        this.isPlayer1 = true
-      else 
-        this.isPlayer1 = false
+      //handles bad exits
+      window.addEventListener('beforeunload', this.handleExit)
 
-      const paragraphElement = document.getElementById('paragraph')
-      const inputElement = document.getElementById('userinput')
-      const copy = this.challenge
-      // paragraphElement.innerHTML = ''
-      copy.split('').forEach(character => {
-        const characterSpan = document.createElement('span')
-        characterSpan.innerText = character
-        paragraphElement.appendChild(characterSpan)
-      })
+      //bad logins/refreshes
+      const userIsNull = checkIfUserIsNull()
+      if(userIsNull) {
+        window.removeEventListener('beforeunload', this.handleExit)
+        redirectToHome()
+      }
+      else {
+        const roomID = this.$store.getters['auth/getCurrentRoomID']
+        const queryroom = db.collection('Rooms').doc(roomID)
+        const room = await queryroom.get()
+        
+        const paragraphID = room.data().challengeString.id
+        
+        const query = db.collection('Paragraphs').doc(paragraphID)
+        const doc = await query.get()
+        this.challenge = doc.data().Bank
+        this.challengelength = doc.data().Length
+        
+        if (room.data().user1.id === this.$store.getters['auth/getCurrentUserID'])
+          this.isPlayer1 = true
+        else 
+          this.isPlayer1 = false
 
-      inputElement.value = null
+        const paragraphElement = document.getElementById('paragraph')
+        const inputElement = document.getElementById('userinput')
+        const copy = this.challenge
+        // paragraphElement.innerHTML = ''
+        copy.split('').forEach(character => {
+          const characterSpan = document.createElement('span')
+          characterSpan.innerText = character
+          paragraphElement.appendChild(characterSpan)
+        })
+
+        inputElement.value = null
+      }
     },
+
+    beforeDestroy() {
+      window.removeEventListener('beforeunload', this.handleExit)
+    }
     
   }
 </script>
