@@ -75,9 +75,7 @@ export default {
             this.bar2 = doc.data().progress2;
             this.bar1 = doc.data().progress1;
           }
-
-          console.log("user1: " + this.user1_id + " bar1: " + this.bar1);
-          console.log("user2: " + this.user2_id + " bar2: " + this.bar2); 
+          this.checkIfWinner();
 
           this.paragraphID = doc.data().challengeString.id
           this.getParagraphLength();
@@ -129,6 +127,17 @@ export default {
     updateFill: function() {
       this.fill1 = this.percent1;
       this.fill2 = this.percent2;
+    },
+
+    checkIfWinner: function() { // if there is a winner, unsubscribe
+      console.log("bar1: " + this.bar1 + " bar2: " + this.bar2 + " total: " + this.paragraphLength);
+      if (this.bar1 > this.bar2 && this.bar1 == this.paragraphLength) {
+        this.unsubscribe();
+      } else if (this.bar2 > this.bar1 && this.bar2 == this.paragraphLength) {
+        this.unsubscribe();
+      } else {
+        this.unsubscribe();
+      }
     },
 
     unsubscribe: async function() {
