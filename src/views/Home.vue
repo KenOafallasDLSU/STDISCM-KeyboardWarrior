@@ -93,19 +93,10 @@ export default {
                   this.setUser({userID: docRef.id, username: this.Name})
 
                   //this.$router.push({ name: 'Matchmaking' })
+                  const path = '/matching'
+                  console.log('Start matching...')
+                  router.push(path).catch(()=>{})
 
-                  // push user to the waiting room
-                  const reference = { User: docRef }
-                  db.collection('Waiting Room').add(reference)
-                    .then((docRef) => {
-                      console.log('Added ' + docRef.id + ' to waiting room.')
-                      const path = '/matching'
-                      console.log('Start matching...')
-                      router.push(path).catch(()=>{})
-                    })
-                    .catch(() => {
-                      console.error("Error adding reference.");
-                    })
                 })
                 .catch(() => {
                     console.error("Error adding document");
