@@ -28,7 +28,7 @@ const routes = [
     }
   },
   {
-    path: '/gameplay',
+    path: '/gameplay/:roomID',
     name: 'Gameplay',
     component: Gameplay
   }
