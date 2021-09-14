@@ -72,7 +72,7 @@ export default {
         this.waitForMatch(currentRoomID)
       } else{ //when an unmatched room is found
         console.log("Match Found!")
-        this.waitForMatch(currentRoomID)
+        this.setRoomID(currentRoomID)
         this.isMatched = true
         this.matchFound(this.$store.getters['auth/getCurrentUserID'], currentRoomID)
         await this.sleepForFluff(2000)
@@ -131,7 +131,6 @@ export default {
 
     /**
      * subscribes to the room for a user2 to enter
-     * then adds that user to the current room
      * @param roomID - room to add user to
      */
     waitForMatch: async function(roomID) {
@@ -144,7 +143,7 @@ export default {
             if(doc.data().matched) {
               console.log("Match Found with: " + doc.data().user2.id)
               this.isMatched = true
-              await this.sleepForFluff(3000)
+              await this.sleepForFluff(2000)
               this.goToGame()
             }
           }
@@ -167,7 +166,9 @@ export default {
       this.unsubscribe()
 
       //redirect to game
-      //this.$router.push({ name: 'Home' })
+      const roomIDParam = this.$store.getters['auth/getCurrentRoomID']
+      //this.$router.push({ name: 'Gameplay', params: { roomIDParam } })
+      this.$router.push({ path: `/gameplay/${roomIDParam}` })
     },
 
     /**
