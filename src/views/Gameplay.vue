@@ -10,7 +10,7 @@
         <textarea class="userinput" id="userinput" autofocus></textarea>
       </div>
     </div>
-    <PostGame v-if="isFinished"/>
+    <PostGame v-if="isFinished" :winner='result'/>
   </div>
 </template>
 
@@ -35,6 +35,7 @@
         isPlayer1: true,
         isFinished: false,
         checkOpponentProgress: null,
+        result: false
       }
     },
     mounted() {
@@ -83,7 +84,7 @@
         if(numCorrect === this.challengelength){
           this.isFinished = true
           inputElement.disabled = true;
-          PostGame.show()
+          result = true
         }
       }),
 
@@ -94,14 +95,12 @@
             if(doc.data().progress2 === this.challengelength){
               this.isFinished = true
               inputElement.disabled = true;
-              PostGame.show()
             }
           }
           else if (doc.exists && !this.isPlayer1){
             if(doc.data().progress1 === this.challengelength){
               this.isFinished = true
               inputElement.disabled = true;
-              PostGame.show()
             }
           }
         })
