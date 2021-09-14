@@ -18,6 +18,13 @@
 <script>
 import db from '@/firebase'
 import firebase from 'firebase'
+import { 
+  checkIfUserIsNull, 
+  redirectToHome,
+  deleteCurrentUser,
+  deleteUserRoom
+} from '@/resources/errorHandling.js'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'Matchmaking',
@@ -27,7 +34,29 @@ export default {
       matchmakerUnsubscribe: null
     }
   },
+  created() {
+    window.addEventListener('beforeunload', this.handleExit)
+  },
+  beforeDestroy() {
+    window.removeEventListener('beforeunload', this.handleExit)
+  },
   methods: {
+    ...mapActions({
+      setRoomID: 'auth/setRoomID'
+    }),
+
+    /**
+     * Handles behavior on evil exit
+     * Deletes user and room
+     */
+    handleExit: function() {
+      //console.log("Absolutely hope this works")
+
+      deleteUserRoom()
+      deleteCurrentUser()
+      this.unsubscribe()
+    },
+
     /**
      * main matchmaking function
      * matches current user with another user
@@ -39,9 +68,11 @@ export default {
       if(currentRoomID === null){ //when no unmatched room exists
         console.log("Waiting for Match!")
         currentRoomID = await this.createRoom()
+        this.setRoomID(currentRoomID)
         this.waitForMatch(currentRoomID)
       } else{ //when an unmatched room is found
         console.log("Match Found!")
+        this.waitForMatch(currentRoomID)
         this.isMatched = true
         this.matchFound(this.$store.getters['auth/getCurrentUserID'], currentRoomID)
         await this.sleepForFluff(2000)
@@ -133,17 +164,18 @@ export default {
     },
 
     goToGame: function() {
-      if(this.matchmakerUnsubscribe !== null)
-        this.unsubscribe()
+      this.unsubscribe()
 
       //redirect to game
+      //this.$router.push({ name: 'Home' })
     },
 
     /**
      * unsubscribes from the waiting room
      */
     unsubscribe: async function() {
-      this.matchmakerUnsubscribe()
+      if(this.matchmakerUnsubscribe !== null)
+        this.matchmakerUnsubscribe()
     },
 
     /**
@@ -155,8 +187,11 @@ export default {
   },
 
   async mounted () {
-    console.log(this.$store.getters['auth/getCurrentUserName'])
-    this.matchmake()
+    const userIsNull = checkIfUserIsNull()
+    if(userIsNull)
+      redirectToHome()
+    else
+      this.matchmake()
   }
 }
 </script>

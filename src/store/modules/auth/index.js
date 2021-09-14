@@ -9,7 +9,8 @@ const state = {
     id: null
     // name: "Kenneth",
     // id: "zsVoTFJsg1UOSBeqLxfa"
-  }
+  },
+  roomID: null
 }
 
 export default {
