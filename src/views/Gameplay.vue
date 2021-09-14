@@ -44,7 +44,36 @@
     mounted() {
       const roomID = this.$store.getters['auth/getCurrentRoomID']
       
-      userinput.addEventListener('input', () => {
+      userinput.addEventListener('input', this.checkInput)
+
+      this.checkOpponentProgress = db.collection('Rooms')
+        .doc(roomID)
+        .onSnapshot(async doc => {
+          if(doc.exists && this.isPlayer1){
+            if(doc.data().progress2 === this.challengelength){
+              this.isFinished = true
+              inputElement.disabled = true;
+              this.unsubscribe()
+              userinput.removeEventListener('input', this.checkInput)
+            }
+          }
+          else if (doc.exists && !this.isPlayer1){
+            if(doc.data().progress1 === this.challengelength){
+              this.isFinished = true
+              inputElement.disabled = true;
+              this.unsubscribe()
+              userinput.removeEventListener('input', this.checkInput)
+            }
+          }
+        })
+    },
+    methods: {
+      unsubscribe: async function() {
+        if(this.checkOpponentProgress !== null)
+          this.checkOpponentProgress()
+      },
+      checkInput: function() {
+        const roomID = this.$store.getters['auth/getCurrentRoomID']
         const paragraphElement = document.getElementById('paragraph')
         const inputElement = document.getElementById('userinput')
 
@@ -87,36 +116,12 @@
         if(numCorrect === this.challengelength){
           this.isFinished = true
           inputElement.disabled = true;
-          result = true
+          this.result = true
           this.unsubscribe()
           deleteUserRoom()
+          userinput.removeEventListener('input', this.checkInput)
         }
-      }),
-
-      this.checkOpponentProgress = db.collection('Rooms')
-        .doc(roomID)
-        .onSnapshot(async doc => {
-          if(doc.exists && this.isPlayer1){
-            if(doc.data().progress2 === this.challengelength){
-              this.isFinished = true
-              inputElement.disabled = true;
-              this.unsubscribe()
-            }
-          }
-          else if (doc.exists && !this.isPlayer1){
-            if(doc.data().progress1 === this.challengelength){
-              this.isFinished = true
-              inputElement.disabled = true;
-              this.unsubscribe()
-            }
-          }
-        })
-    },
-    methods: {
-      unsubscribe: async function() {
-        if(this.checkOpponentProgress !== null)
-          this.checkOpponentProgress()
-      },
+      }
     },
     async created() {
       const roomID = this.$store.getters['auth/getCurrentRoomID']
