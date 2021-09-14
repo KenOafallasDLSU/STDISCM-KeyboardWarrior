@@ -32,7 +32,11 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 export default {
   mounted() { 
     this.roomID = this.$route.params.roomID;
+    this.user1_id = this.$store.getters['auth/getCurrentUserID'];
+    console.log("user1 id: " + this.user1_id)
+    console.log(this.roomID);
     this.progressListener();
+    this.getUser1();
   },
   beforeDestroy() {
     window.removeEventListener('beforeunload', this.unsubscribe);
@@ -58,13 +62,47 @@ export default {
   name: 'ProgressBar',
   methods: {
     progressListener: async function() {
-      db.collection('Rooms')
+      this.unsubscriber = db.collection('Rooms')
         .doc(this.roomID)
         .onSnapshot(async doc => {
-          this.bar1 = doc.data().progress1;
-          this.bar2 = doc.data().progress2;
+
+          if (doc.data().user2.id == this.user1_id) { // if current == user2
+            this.user2_id = doc.data().user1.id;
+            this.bar2 = doc.data().progress1;
+            this.bar1 = doc.data().progress2;
+          } else { // if current == user1
+            this.user2_id = doc.data().user2.id
+            this.bar2 = doc.data().progress2;
+            this.bar1 = doc.data().progress1;
+          }
+
+          console.log("user1: " + this.user1_id + " bar1: " + this.bar1);
+          console.log("user2: " + this.user2_id + " bar2: " + this.bar2); 
+
+          this.paragraphID = doc.data().challengeString.id
           this.getParagraphLength();
         });
+    },
+
+    getUser1: function() {
+      db.collection('Users')
+        .doc(this.user1_id)
+        .get()
+        .then(snapshot => {
+          this.user1 = snapshot.data().Name;
+          console.log(this.user1);
+          this.getUser2();
+        });
+    },
+
+    getUser2: function() {
+      db.collection('Users')
+        .doc(this.user2_id)
+        .get()
+        .then(snapshot => {
+          this.user2 = snapshot.data().Name;
+          console.log(this.user2);
+        })
     },
 
     getParagraphLength: function() {
@@ -73,6 +111,7 @@ export default {
         .get()
         .then(snapshot => {
           this.paragraphLength = snapshot.data().Length;
+          console.log(this.paragraphLength);
           this.updateValue();
         });
     },
@@ -90,9 +129,6 @@ export default {
     updateFill: function() {
       this.fill1 = this.percent1;
       this.fill2 = this.percent2;
-
-      console.log(this.fill1);
-      console.log(this.fill2);
     },
 
     unsubscribe: async function() {
