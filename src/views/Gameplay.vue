@@ -1,7 +1,10 @@
 <template>
   <div class="home">
+    <b-modal v-model="isError" id="error-modal" @ok="redirectWrapper" ok-only hide-header no-close-on-esc no-close-on-backdrop>
+      <div>You are logged out. Returning to login...</div>
+    </b-modal>
     <CountdownModal v-if="!start"/>
-    <div>
+    <div v-show="!isError">
       <!-- <div class="progressBar">
         <ProgressBar />
       </div> -->
@@ -37,11 +40,12 @@
       return {
         challenge: String,
         challengelength: -1,
-        start: false,
+        start: true,
         isPlayer1: true,
         isFinished: false,
         checkOpponentProgress: null,
-        result: false
+        result: false,
+        isError: false
       }
     },
     mounted() {
@@ -84,6 +88,11 @@
         if(this.checkOpponentProgress !== null)
           this.checkOpponentProgress()
       },
+
+      redirectWrapper: function() {
+        redirectToHome()
+      },
+
       checkInput: function() {
         const roomID = this.$store.getters['auth/getCurrentRoomID']
         const paragraphElement = document.getElementById('paragraph')
@@ -150,9 +159,11 @@
       const userIsNull = checkIfUserIsNull()
       if(userIsNull) {
         window.removeEventListener('beforeunload', this.handleExit)
-        redirectToHome()
+        this.isError = true
       }
       else {
+        this.start = false
+
         const roomID = this.$store.getters['auth/getCurrentRoomID']
         const queryroom = db.collection('Rooms').doc(roomID)
         const room = await queryroom.get()
