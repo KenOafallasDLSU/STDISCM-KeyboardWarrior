@@ -108,20 +108,20 @@ export default {
         },
         play: function() {
             // put user back in waiting queue
-            db.collection('Users')
-                .doc(this.id)
-                .get().then(() => {
-                    var user = { id: this.id }
-                    db.collection('Waiting Room').add(user)
-                        .then(function(docRef) {
-                            console.log(user.id)
-                            console.log(docRef.id)
-                            console.log("Document successfully added!");
-                        })
-                        .catch(() => {
-                            console.error("Error adding document: ", error);
-                        })
-                })
+            // db.collection('Users')
+            //     .doc(this.id)
+            //     .get().then(() => {
+            //         var user = { id: this.id }
+            //         db.collection('Waiting Room').add(user)
+            //             .then(function(docRef) {
+            //                 console.log(user.id)
+            //                 console.log(docRef.id)
+            //                 console.log("Document successfully added!");
+            //             })
+            //             .catch(() => {
+            //                 console.error("Error adding document: ", error);
+            //             })
+            //     })
             
             // redirect to waiting screen
             const path = "/matching"
@@ -144,7 +144,7 @@ export default {
     },
     data: function() {
         return {
-            id: 'ZjOwRcGT4MUPRX58SRL4', // for testingg
+            id: this.$store.getters['auth/getCurrentUserID'], //'ZjOwRcGT4MUPRX58SRL4', // for testingg
             winner: true
         }
     }
