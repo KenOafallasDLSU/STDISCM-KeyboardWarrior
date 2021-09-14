@@ -2,7 +2,7 @@
   <div class="home">
     <!-- <CountdownModal v-if="!start" /> -->
     <div class="container">
-      <div class="paragraph" id="paragraph">{{challenge}}</div>
+      <div class="paragraph" id="paragraph"></div>
       <textarea class="userinput" id="userinput" autofocus></textarea>
     </div>
   </div>
@@ -20,7 +20,8 @@
     data() {
       return {
         challenge: String,
-        start: false
+        start: false,
+        isPlayer1: true,
       }
     },
     mounted() {
@@ -32,41 +33,61 @@
         const arrayInput = inputElement.value.split('')
 
         let correct = true
+        var numCorrect = 0
         arrayParagraph.forEach((characterSpan, index) => {
           const character = arrayInput[index]
           if (character == null) {
-            characterSpan.classList.remove('correct')
-            characterSpan.classList.remove('incorrect')
+            characterSpan.style.color = "black"
             correct = false
           }
           else if (character === characterSpan.innerText) {
-            characterSpan.classList.add('correct')
-            characterSpan.classList.remove('incorrect')
+            characterSpan.style.color = "green"
+            numCorrect += 1;
           }
           else {
-            characterSpan.classList.remove('correct')
-            characterSpan.classList.add('incorrect')
+            characterSpan.style.color = "red"
             correct = false
           }
         })
+
+        if (this.isPlayer1){
+          const gameRoom = db.collection('Rooms')
+          .doc('BnWrLjSRhp1G0hdxj4VO')
+          .update({
+          progress1: numCorrect
+          })
+          console.log
+        }
+        else {
+          const gameRoom = db.collection('Rooms')
+          .doc('BnWrLjSRhp1G0hdxj4VO')
+          .update({
+          progress2: numCorrect
+          })
+        }
+
       })
     },
     async created() {
-      // room = await queryRoom(roomID) //this is in URL or vuex, assume you can get from either
-      // paragraphID = room.challengeString.id
-      // paragraph = await queryParagraph(paragraphID)
-      //challengeString = paragraph./*yung property nun na string*/
+      const roomID = this.$store.getters['auth/getCurrentRoomID']
+      //const queryroom = db.collection('Rooms').doc(roomID)
+      const queryroom = db.collection('Rooms').doc('BnWrLjSRhp1G0hdxj4VO')
+      const room = await queryroom.get()
+      const paragraphID = room.data().challengeString.id
       
-      const paragraphID = "7WAASLXDr19D01wLz2Fn"
       const query = db.collection('Paragraphs').doc(paragraphID)
       const doc = await query.get()
       this.challenge = doc.data().Bank
+      
+      //if (room.user1.id === this.$store.getters['auth/getCurrentUserID'])
+      if (room.data().user1.id === 'wgQYZatmt8KL23znp4DD')
+        this.isPlayer1 = true
+      else 
+        this.isPlayer1 = false
 
       const paragraphElement = document.getElementById('paragraph')
       const inputElement = document.getElementById('userinput')
-      
       const copy = this.challenge
-
       // paragraphElement.innerHTML = ''
       copy.split('').forEach(character => {
         const characterSpan = document.createElement('span')
@@ -90,7 +111,6 @@
     align-items: center;
     justify-content: center;
     height: 100vh;
-    color: rgb(50, 50, 50);
     background: linear-gradient(0deg, rgb(255, 99, 71), rgba(255, 99, 71, 0.25)), url("./../../public/keyboardbg.png");
     background-size: cover;
     background-color: tomato;
@@ -103,7 +123,7 @@
   }
 
   .container{
-    background-color: #F0DB4F;
+    background-color: white;
     padding: 1rem;
     border-radius: .5rem;
     width: 700px;
@@ -118,7 +138,7 @@
 
   .userinput{
     background-color: transparent;
-    border: 2px solid #A1992E;
+    border: 2px solid black;
     outline: none;
     width: 100%;
     height: 8rem;
@@ -131,14 +151,5 @@
 
   .userinput:focus{
     border-color: black;
-  }
-
-  .correct{
-    color:green;
-  }
-
-  .incorrect{
-    color: red;
-    text-decoration: underline;
   }
 </style>
