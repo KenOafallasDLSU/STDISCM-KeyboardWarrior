@@ -99,7 +99,15 @@ export default {
      */
     createRoom: async function() {
       //get a random challenge paragraph
-      let paragraphID = await this.getRandomParagraphID()
+      const paragraphArray = []
+      const paragraphQuery = db.collection('Paragraphs')
+      const paragraphSnapshot = await paragraphQuery.get()
+      paragraphSnapshot.forEach(doc => {
+        console.log(doc.id, '=>', doc.data())
+        paragraphArray.push(doc.id)
+      })
+      const paragraphID = paragraphArray[Math.floor(Math.random() * paragraphArray.length)]
+      console.log("Using String: " + paragraphID)
 
       //add new room to collection
       const newRoom = await db.collection('Rooms').add({
