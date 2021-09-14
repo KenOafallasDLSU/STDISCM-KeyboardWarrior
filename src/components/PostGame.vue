@@ -1,8 +1,8 @@
 <template>
     <div>
-        <a href="/#modal" @click.prevent="show" class="text-copy-primary hover:text-gray-600">Modal</a>
+        <!-- <a href="/#modal" @click.prevent="show" class="text-copy-primary hover:text-gray-600">Modal</a> -->
         <!-- <modal name="modal-post" :clickToClose="false" :height="580" :width="700"> -->
-        <modal name="modal-post" :height="580" :width="700">
+        <modal name="modal-post" :clickToClose="false" :height="580" :width="700">
             <div class="modal-logo">
                 <img src="../assets/medal-win.png" class="modal-medal" v-if="winner">
                 <img src="../assets/medal-lose.png" class="modal-medal" v-if="!winner">
@@ -108,20 +108,20 @@ export default {
         },
         play: function() {
             // put user back in waiting queue
-            db.collection('Users')
-                .doc(this.id)
-                .get().then(() => {
-                    var user = { id: this.id }
-                    db.collection('Waiting Room').add(user)
-                        .then(function(docRef) {
-                            console.log(user.id)
-                            console.log(docRef.id)
-                            console.log("Document successfully added!");
-                        })
-                        .catch(() => {
-                            console.error("Error adding document: ", error);
-                        })
-                })
+            // db.collection('Users')
+            //     .doc(this.id)
+            //     .get().then(() => {
+            //         var user = { id: this.id }
+            //         db.collection('Waiting Room').add(user)
+            //             .then(function(docRef) {
+            //                 console.log(user.id)
+            //                 console.log(docRef.id)
+            //                 console.log("Document successfully added!");
+            //             })
+            //             .catch(() => {
+            //                 console.error("Error adding document: ", error);
+            //             })
+            //     })
             
             // redirect to waiting screen
             const path = "/matching"
@@ -142,11 +142,16 @@ export default {
             });
         }
     },
+    mounted() {
+        this.show()
+    },
     data: function() {
         return {
-            id: 'ZjOwRcGT4MUPRX58SRL4', // for testingg
-            winner: true
+            id: this.$store.getters['auth/getCurrentUserID'] //'ZjOwRcGT4MUPRX58SRL4', // for testingg
         }
+    },
+    props: {
+        winner: Boolean
     }
 }
 </script>
