@@ -1,30 +1,45 @@
 <template>
   <div class="home">
-    <!-- <CountdownModal v-if="!start" /> -->
-    <div class="container">
-      <div class="paragraph" id="paragraph"></div>
-      <textarea class="userinput" id="userinput" autofocus></textarea>
+    <CountdownModal v-if="!start"/>
+    <div>
+      <!-- <div class="progressBar">
+        <ProgressBar />
+      </div> -->
+      <div class="container">
+        <div class="paragraph" id="paragraph"></div>
+        <textarea class="userinput" id="userinput" autofocus></textarea>
+      </div>
     </div>
+    <PostGame v-if="isFinished"/>
   </div>
 </template>
 
 <script>
   import db from '@/firebase'
   import CountdownModal from '../components/CountdownModal.vue'
+  import PostGame from '../components/PostGame.vue'
+  import ProgressBar from '../components/ProgressBar.vue'
   
   export default{
     Name: 'Gameplay',
     components: {
-      CountdownModal
+      CountdownModal,
+      PostGame,
+      ProgressBar,
     },
     data() {
       return {
         challenge: String,
+        challengelength: -1,
         start: false,
         isPlayer1: true,
+        isFinished: false,
+        checkOpponentProgress: null,
       }
     },
     mounted() {
+      const roomID = this.$store.getters['auth/getCurrentRoomID']
+      
       userinput.addEventListener('input', () => {
         const paragraphElement = document.getElementById('paragraph')
         const inputElement = document.getElementById('userinput')
@@ -52,35 +67,58 @@
 
         if (this.isPlayer1){
           const gameRoom = db.collection('Rooms')
-          .doc('BnWrLjSRhp1G0hdxj4VO')
-          .update({
-          progress1: numCorrect
-          })
-          console.log
+            .doc(roomID)
+            .update({
+            progress1: numCorrect
+            })
         }
         else {
           const gameRoom = db.collection('Rooms')
-          .doc('BnWrLjSRhp1G0hdxj4VO')
-          .update({
-          progress2: numCorrect
-          })
+            .doc(roomID)
+            .update({
+            progress2: numCorrect
+            })
         }
 
-      })
+        if(numCorrect === this.challengelength){
+          this.isFinished = true
+          inputElement.disabled = true;
+          PostGame.show()
+        }
+      }),
+
+      this.checkOpponentProgress = db.collection('Rooms')
+        .doc(roomID)
+        .onSnapshot(async doc => {
+          if(doc.exists && this.isPlayer1){
+            if(doc.data().progress2 === this.challengelength){
+              this.isFinished = true
+              inputElement.disabled = true;
+              PostGame.show()
+            }
+          }
+          else if (doc.exists && !this.isPlayer1){
+            if(doc.data().progress1 === this.challengelength){
+              this.isFinished = true
+              inputElement.disabled = true;
+              PostGame.show()
+            }
+          }
+        })
     },
     async created() {
       const roomID = this.$store.getters['auth/getCurrentRoomID']
-      //const queryroom = db.collection('Rooms').doc(roomID)
-      const queryroom = db.collection('Rooms').doc('BnWrLjSRhp1G0hdxj4VO')
+      const queryroom = db.collection('Rooms').doc(roomID)
       const room = await queryroom.get()
+      
       const paragraphID = room.data().challengeString.id
       
       const query = db.collection('Paragraphs').doc(paragraphID)
       const doc = await query.get()
       this.challenge = doc.data().Bank
+      this.challengelength = doc.data().Length
       
-      //if (room.user1.id === this.$store.getters['auth/getCurrentUserID'])
-      if (room.data().user1.id === 'wgQYZatmt8KL23znp4DD')
+      if (room.data().user1.id === this.$store.getters['auth/getCurrentUserID'])
         this.isPlayer1 = true
       else 
         this.isPlayer1 = false
@@ -152,4 +190,9 @@
   .userinput:focus{
     border-color: black;
   }
+
+  .progressBar{
+    margin: 5vh;
+  }
+
 </style>
