@@ -28,12 +28,15 @@
 import db from '@/firebase'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-// import room to get room id
 
 export default {
   created() { // on page load, connect to the db and find the necessary data
     this.getParagraphLength();
     console.log(this.$route);
+    console.log(this.$store.challenge);
+
+    this.roomID = this.$route.params.roomID;
+    this.progressListener();
   },
   name: 'ProgressBar',
   methods: {
@@ -51,9 +54,11 @@ export default {
     // listener for progress 1 and 2
     progressListener: async function() {
       db.collection('Rooms')
-        .doc(this.roomID) // TODO: GET ROOM ID FROM ROUTE PARAMS
+        .doc(this.roomID)
         .onSnapshot(async doc => {
           this.setValue(doc.data().progress1, doc.data().progress2);
+
+          console.log(doc.data().progress1, doc.data().progress2);
         });
     },
     
@@ -100,7 +105,7 @@ export default {
         fill2: '',
         percent1: '',
         percent2: '',
-        roomID: 'NXQiF0wQwN5qUOZohxe3', // testing, TODO: GET ROOM ID FROM ROUTE PARAMS
+        roomID: '', 
         paragraphLength: 0, // default value is 0
         paragraphID: '7WAASLXDr19D01wLz2Fn', //testing
       }
