@@ -19,7 +19,8 @@ const actions = {
   async logoutUser({ commit }) {
     commit('setUserLoggedIn', false)
     commit('setUserID', null)
-    commit('setUserName', null)
+    commit('setUserName', "")
+    commit('setRoomID', null)
   }
 }
 
