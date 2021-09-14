@@ -32,11 +32,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 export default {
   mounted() { 
     this.roomID = this.$route.params.roomID;
-    this.user1_id = this.$store.getters['auth/getCurrentUserID'];
-    console.log("user1 id: " + this.user1_id)
     this.progressListener();
-    this.getUser1Name();
-    this.getParagraphLength();
   },
   beforeDestroy() {
     window.removeEventListener('beforeunload', this.unsubscribe);
@@ -61,7 +57,16 @@ export default {
   },
   name: 'ProgressBar',
   methods: {
-    // get paragraph length from the db
+    progressListener: async function() {
+      db.collection('Rooms')
+        .doc(this.roomID)
+        .onSnapshot(async doc => {
+          this.bar1 = doc.data().progress1;
+          this.bar2 = doc.data().progress2;
+          this.getParagraphLength();
+        });
+    },
+
     getParagraphLength: function() {
       db.collection('Paragraphs')
         .doc(this.paragraphID)
@@ -72,48 +77,6 @@ export default {
         });
     },
 
-    getUser1Name: function() {
-      db.collection('Users')
-        .doc(this.user1_id)
-        .get()
-        .then(snapshot => {
-          this.user1 = snapshot.data().Name;
-          console.log("user1: " + this.user1);
-
-          this.getUser2Name();
-        });
-    },
-
-    getUser2Name: function() {
-      db.collection('Users')
-        .doc(this.user2_id)
-        .get()
-        .then(snapshot => {
-          this.user2 = snapshot.data().Name;
-          console.log("user2: " + this.user2);
-        });
-    },
-
-    // listener for progress 1 and 2
-    progressListener: async function() {
-      this.unsubscriber = db.collection('Rooms')
-        .doc(this.roomID)
-        .onSnapshot(async doc => {
-          this.bar1 = doc.data().progress1;
-          this.bar2 = doc.data().progress2;
-          
-          this.paragraphID = doc.data().challengeString.id
-          console.log(this.paragraphID);
-
-          this.user2_id = doc.data().user2.id;
-          console.log("user2 id: " + this.user2_id); 
-
-          // call this.unsubscribe when theres a winner
-        });
-    },
-
-    // updates the value of the progress bar with 
-    // respect to the total char count of the paragraph
     updateValue: function() {
       this.percent1 = this.computePercentage(this.bar1);
       this.percent2 = this.computePercentage(this.bar2);
@@ -124,7 +87,6 @@ export default {
       return parseInt(((value / this.paragraphLength) * 100)) + '%';
     },
 
-    // updates the fill of the progress bar
     updateFill: function() {
       this.fill1 = this.percent1;
       this.fill2 = this.percent2;

@@ -1,7 +1,10 @@
 <template>
   <div class="home">
+    <b-modal v-model="isError" id="error-modal" @ok="redirectWrapper" ok-only hide-header no-close-on-esc no-close-on-backdrop>
+      <div>You are logged out. Returning to login...</div>
+    </b-modal>
     <CountdownModal v-if="!start"/>
-    <div>
+    <div v-show="!isError">
       <div class="progressBar">
         <ProgressBar />
       </div>
@@ -20,6 +23,9 @@
   import PostGame from '../components/PostGame.vue'
   import ProgressBar from '../components/ProgressBar.vue'
   import { 
+    checkIfUserIsNull, 
+    redirectToHome,
+    deleteCurrentUser,
     deleteUserRoom
   } from '@/resources/errorHandling.js'
   
@@ -34,44 +40,59 @@
       return {
         challenge: String,
         challengelength: -1,
-        start: false,
+        start: true,
         isPlayer1: true,
         isFinished: false,
         checkOpponentProgress: null,
-        result: false
+        result: false,
+        isError: false
       }
     },
     mounted() {
       const roomID = this.$store.getters['auth/getCurrentRoomID']
-      
+      const inputElement = document.getElementById('userinput')
       userinput.addEventListener('input', this.checkInput)
 
-      this.checkOpponentProgress = db.collection('Rooms')
-        .doc(roomID)
-        .onSnapshot(async doc => {
-          if(doc.exists && this.isPlayer1){
-            if(doc.data().progress2 === this.challengelength){
+      if(roomID !== null) {
+        this.checkOpponentProgress = db.collection('Rooms')
+          .doc(roomID)
+          .onSnapshot(async doc => {
+            if(doc.exists && this.isPlayer1){
+              if(doc.data().progress2 === this.challengelength){
+                this.isFinished = true
+                inputElement.disabled = true;
+                this.unsubscribe()
+                userinput.removeEventListener('input', this.checkInput)
+              }
+            }
+            else if (doc.exists && !this.isPlayer1){
+              if(doc.data().progress1 === this.challengelength){
+                this.isFinished = true
+                inputElement.disabled = true;
+                this.unsubscribe()
+                userinput.removeEventListener('input', this.checkInput)
+              }
+            }
+            else if(!doc.exists){
               this.isFinished = true
               inputElement.disabled = true;
+              this.result = true
               this.unsubscribe()
               userinput.removeEventListener('input', this.checkInput)
             }
-          }
-          else if (doc.exists && !this.isPlayer1){
-            if(doc.data().progress1 === this.challengelength){
-              this.isFinished = true
-              inputElement.disabled = true;
-              this.unsubscribe()
-              userinput.removeEventListener('input', this.checkInput)
-            }
-          }
-        })
+          })
+      }
     },
     methods: {
       unsubscribe: async function() {
         if(this.checkOpponentProgress !== null)
           this.checkOpponentProgress()
       },
+
+      redirectWrapper: function() {
+        redirectToHome()
+      },
+
       checkInput: function() {
         const roomID = this.$store.getters['auth/getCurrentRoomID']
         const paragraphElement = document.getElementById('paragraph')
@@ -121,37 +142,61 @@
           deleteUserRoom()
           userinput.removeEventListener('input', this.checkInput)
         }
+      },
+
+      handleExit: function() {
+        userinput.removeEventListener('input', this.checkInput)
+        this.unsubscribe()
+        deleteUserRoom()
+        deleteCurrentUser()
       }
     },
     async created() {
-      const roomID = this.$store.getters['auth/getCurrentRoomID']
-      const queryroom = db.collection('Rooms').doc(roomID)
-      const room = await queryroom.get()
-      
-      const paragraphID = room.data().challengeString.id
-      
-      const query = db.collection('Paragraphs').doc(paragraphID)
-      const doc = await query.get()
-      this.challenge = doc.data().Bank
-      this.challengelength = doc.data().Length
-      
-      if (room.data().user1.id === this.$store.getters['auth/getCurrentUserID'])
-        this.isPlayer1 = true
-      else 
-        this.isPlayer1 = false
+      //handles bad exits
+      window.addEventListener('beforeunload', this.handleExit)
 
-      const paragraphElement = document.getElementById('paragraph')
-      const inputElement = document.getElementById('userinput')
-      const copy = this.challenge
-      // paragraphElement.innerHTML = ''
-      copy.split('').forEach(character => {
-        const characterSpan = document.createElement('span')
-        characterSpan.innerText = character
-        paragraphElement.appendChild(characterSpan)
-      })
+      //bad logins/refreshes
+      const userIsNull = checkIfUserIsNull()
+      if(userIsNull) {
+        window.removeEventListener('beforeunload', this.handleExit)
+        this.isError = true
+      }
+      else {
+        this.start = false
 
-      inputElement.value = null
+        const roomID = this.$store.getters['auth/getCurrentRoomID']
+        const queryroom = db.collection('Rooms').doc(roomID)
+        const room = await queryroom.get()
+        
+        const paragraphID = room.data().challengeString.id
+        
+        const query = db.collection('Paragraphs').doc(paragraphID)
+        const doc = await query.get()
+        this.challenge = doc.data().Bank
+        this.challengelength = doc.data().Length
+        
+        if (room.data().user1.id === this.$store.getters['auth/getCurrentUserID'])
+          this.isPlayer1 = true
+        else 
+          this.isPlayer1 = false
+
+        const paragraphElement = document.getElementById('paragraph')
+        const inputElement = document.getElementById('userinput')
+        const copy = this.challenge
+        // paragraphElement.innerHTML = ''
+        copy.split('').forEach(character => {
+          const characterSpan = document.createElement('span')
+          characterSpan.innerText = character
+          paragraphElement.appendChild(characterSpan)
+        })
+
+        inputElement.value = null
+      }
     },
+
+    beforeDestroy() {
+      window.removeEventListener('beforeunload', this.handleExit)
+    }
     
   }
 </script>

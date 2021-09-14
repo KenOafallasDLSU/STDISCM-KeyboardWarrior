@@ -1,6 +1,10 @@
 <template>
   <div class="home">
-    <div class="titlecard">
+    <b-modal v-model="isError" id="error-modal" @ok="redirectWrapper" ok-only hide-header no-close-on-esc no-close-on-backdrop>
+      <div>You are logged out. Returning to login...</div>
+    </b-modal>
+
+    <div class="titlecard" v-show="!isError">
       <b-spinner variant="dark" class="spinner" v-show="!isMatched"></b-spinner>
       
       <div class="wrapper">
@@ -31,7 +35,8 @@ export default {
   data() {
     return {
       isMatched: false,
-      matchmakerUnsubscribe: null
+      matchmakerUnsubscribe: null,
+      isError: false
     }
   },
   created() {
@@ -55,6 +60,10 @@ export default {
       deleteUserRoom()
       deleteCurrentUser()
       this.unsubscribe()
+    },
+
+    redirectWrapper: function() {
+      redirectToHome()
     },
 
     /**
@@ -197,8 +206,10 @@ export default {
 
   async mounted () {
     const userIsNull = checkIfUserIsNull()
-    if(userIsNull)
-      redirectToHome()
+    if(userIsNull) {
+      window.removeEventListener('beforeunload', this.handleExit)
+      this.isError = true
+    }
     else
       this.matchmake()
   }
