@@ -1,8 +1,8 @@
 <template>
     <div>
-        <a href="/#modal" @click.prevent="show" class="text-copy-primary hover:text-gray-600">Modal</a>
+        <!-- <a href="/#modal" @click.prevent="show" class="text-copy-primary hover:text-gray-600">Modal</a> -->
         <!-- <modal name="modal-post" :clickToClose="false" :height="580" :width="700"> -->
-        <modal name="modal-post" :height="580" :width="700">
+        <modal name="modal-post" :clickToClose="false" :height="580" :width="700">
             <div class="modal-logo">
                 <img src="../assets/medal-win.png" class="modal-medal" v-if="winner">
                 <img src="../assets/medal-lose.png" class="modal-medal" v-if="!winner">
@@ -141,6 +141,9 @@ export default {
                 console.error("Error removing document: ", error);
             });
         }
+    },
+    mounted() {
+        this.show()
     },
     data: function() {
         return {
