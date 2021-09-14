@@ -2,9 +2,9 @@
   <div class="home">
     <CountdownModal v-if="!start"/>
     <div>
-      <!-- <div class="progressBar">
+      <div class="progressBar">
         <ProgressBar />
-      </div> -->
+      </div>
       <div class="container">
         <div class="paragraph" id="paragraph"></div>
         <textarea class="userinput" id="userinput" autofocus></textarea>

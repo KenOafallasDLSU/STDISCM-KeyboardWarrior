@@ -2,22 +2,22 @@
   <div class="container">
     <!-- progress for user1 -->
     <div class="row">
-      <div class="col-lg-2">Guest (You)</div>
+      <div class="col-lg-2">{{this.user1}}</div>
       <div class="col-lg-8">
         <div class="progress-bar">
-          <div class="progress-bar-value">{{ this.percent1 }}</div>
-          <div class="progress-bar-fill" :style="{ width: fill1 }"></div>
+          <div class="progress-bar-value">{{this.percent1}}</div>
+          <div class="progress-bar-fill" :style="{width: fill1}"></div>
         </div>
       </div>
     </div>
     <br />
     <!-- progress for user2 -->
     <div class="row">
-      <div class="col-lg-2">Guest</div>
+      <div class="col-lg-2">{{this.user2}}</div>
       <div class="col-lg-8">
         <div class="progress-bar">
-          <div class="progress-bar-value">{{ this.percent2 }}</div>
-          <div class="progress-bar-fill" :style="{ width: fill2 }"></div>
+          <div class="progress-bar-value">{{this.percent2}}</div>
+          <div class="progress-bar-fill" :style="{width: fill2}"></div>
         </div>
       </div>
     </div>
@@ -30,13 +30,34 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 export default {
-  created() { // on page load, connect to the db and find the necessary data
-    this.getParagraphLength();
-    console.log(this.$route);
-    console.log(this.$store.challenge);
-
+  mounted() { 
     this.roomID = this.$route.params.roomID;
+    this.user1_id = this.$store.getters['auth/getCurrentUserID'];
+    console.log("user1 id: " + this.user1_id)
     this.progressListener();
+    this.getUser1Name();
+    this.getParagraphLength();
+  },
+  beforeDestroy() {
+    window.removeEventListener('beforeunload', this.unsubscribe);
+  },
+  data() {
+    return {
+      user1_id: '',
+      user2_id: '',
+      user1: '',
+      user2: '',
+      bar1: 0,
+      bar2: 0,
+      fill1: '',
+      fill2: '',
+      percent1: '',
+      percent2: '',
+      roomID: '', 
+      paragraphLength: 0,
+      paragraphID: '',
+      unsubscriber: null
+    }
   },
   name: 'ProgressBar',
   methods: {
@@ -47,33 +68,55 @@ export default {
         .get()
         .then(snapshot => {
           this.paragraphLength = snapshot.data().Length;
-          this.progressListener();
+          this.updateValue();
+        });
+    },
+
+    getUser1Name: function() {
+      db.collection('Users')
+        .doc(this.user1_id)
+        .get()
+        .then(snapshot => {
+          this.user1 = snapshot.data().Name;
+          console.log("user1: " + this.user1);
+
+          this.getUser2Name();
+        });
+    },
+
+    getUser2Name: function() {
+      db.collection('Users')
+        .doc(this.user2_id)
+        .get()
+        .then(snapshot => {
+          this.user2 = snapshot.data().Name;
+          console.log("user2: " + this.user2);
         });
     },
 
     // listener for progress 1 and 2
     progressListener: async function() {
-      db.collection('Rooms')
+      this.unsubscriber = db.collection('Rooms')
         .doc(this.roomID)
         .onSnapshot(async doc => {
-          this.setValue(doc.data().progress1, doc.data().progress2);
+          this.bar1 = doc.data().progress1;
+          this.bar2 = doc.data().progress2;
+          
+          this.paragraphID = doc.data().challengeString.id
+          console.log(this.paragraphID);
 
-          console.log(doc.data().progress1, doc.data().progress2);
+          this.user2_id = doc.data().user2.id;
+          console.log("user2 id: " + this.user2_id); 
+
+          // call this.unsubscribe when theres a winner
         });
-    },
-    
-    // sets the value of the progress bar
-    setValue: function(p1_newVal, p2_newVal) {
-      this.bar1 = p1_newVal;
-      this.bar2 = p2_newVal;
-      this.updateValue();
     },
 
     // updates the value of the progress bar with 
     // respect to the total char count of the paragraph
     updateValue: function() {
-      this.percent1 = computePercentage(this.bar1);
-      this.percent2 = computePercentage(this.bar2);
+      this.percent1 = this.computePercentage(this.bar1);
+      this.percent2 = this.computePercentage(this.bar2);
       this.updateFill();
     },
 
@@ -85,31 +128,15 @@ export default {
     updateFill: function() {
       this.fill1 = this.percent1;
       this.fill2 = this.percent2;
+
+      console.log(this.fill1);
+      console.log(this.fill2);
     },
 
-    // determine winner
-    determineWinner: function() {
-      if (this.bar1 > this.bar2 && this.bar1 == this.paragraphLength) {
-        // user1 is the winner
-      }
-      else {
-        // user2 is the winner
-      }
+    unsubscribe: async function() {
+      if(this.unsubscriber !== null)
+        this.unsubscriber();
     },
-
-    data() {
-      return {
-        bar1: 0,
-        bar2: 0,
-        fill1: '',
-        fill2: '',
-        percent1: '',
-        percent2: '',
-        roomID: '', 
-        paragraphLength: 0, // default value is 0
-        paragraphID: '7WAASLXDr19D01wLz2Fn', //testing
-      }
-    }
   }
 }
 </script>
