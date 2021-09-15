@@ -112,7 +112,7 @@ export default {
       const paragraphQuery = db.collection('Paragraphs')
       const paragraphSnapshot = await paragraphQuery.get()
       paragraphSnapshot.forEach(doc => {
-        console.log(doc.id, '=>', doc.data())
+        //console.log(doc.id, '=>', doc.data())
         paragraphArray.push(doc.id)
       })
       const paragraphID = paragraphArray[Math.floor(Math.random() * paragraphArray.length)]

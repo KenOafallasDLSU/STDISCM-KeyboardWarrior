@@ -36,8 +36,10 @@ export default {
   mounted() { 
     this.roomID = this.$route.params.roomID;
     this.user1_id = this.$store.getters['auth/getCurrentUserID'];
-    this.progressListener();
-    this.getUser1();
+    if(this.user1_id !== null) {
+      this.progressListener();
+      this.getUser1();
+    }
   },
   beforeDestroy() {
     window.removeEventListener('beforeunload', this.unsubscribe);
@@ -66,20 +68,21 @@ export default {
       this.unsubscriber = db.collection('Rooms')
         .doc(this.roomID)
         .onSnapshot(async doc => {
+          if(doc.exists) {
+            if (doc.data().user2.id == this.user1_id) { // if current == user2
+              this.user2_id = doc.data().user1.id;
+              this.bar2 = doc.data().progress1;
+              this.bar1 = doc.data().progress2;
+            } else { // if current == user1
+              this.user2_id = doc.data().user2.id
+              this.bar2 = doc.data().progress2;
+              this.bar1 = doc.data().progress1;
+            }
+            this.checkIfWinner();
 
-          if (doc.data().user2.id == this.user1_id) { // if current == user2
-            this.user2_id = doc.data().user1.id;
-            this.bar2 = doc.data().progress1;
-            this.bar1 = doc.data().progress2;
-          } else { // if current == user1
-            this.user2_id = doc.data().user2.id
-            this.bar2 = doc.data().progress2;
-            this.bar1 = doc.data().progress1;
+            this.paragraphID = doc.data().challengeString.id
+            this.getParagraphLength();
           }
-          this.checkIfWinner();
-
-          this.paragraphID = doc.data().challengeString.id
-          this.getParagraphLength();
         });
     },
 
@@ -128,7 +131,7 @@ export default {
     },
 
     checkIfWinner: function() { // if there is a winner, unsubscribe
-      console.log("bar1: " + this.bar1 + " bar2: " + this.bar2 + " total: " + this.paragraphLength);
+      //console.log("bar1: " + this.bar1 + " bar2: " + this.bar2 + " total: " + this.paragraphLength);
       if (this.bar1 > this.bar2 && this.bar1 == this.paragraphLength) {
         this.unsubscribe();
       } else if (this.bar2 > this.bar1 && this.bar2 == this.paragraphLength) {
