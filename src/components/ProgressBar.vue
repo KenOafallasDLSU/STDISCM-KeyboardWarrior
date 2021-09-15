@@ -104,7 +104,7 @@ export default {
     },
 
     getParagraphLength: function() {
-      db.collection('Paragraphs')
+      db.collection('Paragraphs') 
         .doc(this.paragraphID)
         .get()
         .then(snapshot => {
@@ -134,8 +134,6 @@ export default {
       if (this.bar1 > this.bar2 && this.bar1 == this.paragraphLength) {
         this.unsubscribe();
       } else if (this.bar2 > this.bar1 && this.bar2 == this.paragraphLength) {
-        this.unsubscribe();
-      } else {
         this.unsubscribe();
       }
     },
