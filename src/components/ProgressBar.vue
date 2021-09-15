@@ -30,11 +30,12 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 export default {
+  created() {
+    window.addEventListener('beforeunload', this.unsubscribe);
+  },
   mounted() { 
     this.roomID = this.$route.params.roomID;
     this.user1_id = this.$store.getters['auth/getCurrentUserID'];
-    console.log("user1 id: " + this.user1_id)
-    console.log(this.roomID);
     this.progressListener();
     this.getUser1();
   },
@@ -88,7 +89,6 @@ export default {
         .get()
         .then(snapshot => {
           this.user1 = snapshot.data().Name;
-          console.log(this.user1);
           this.getUser2();
         });
     },
@@ -99,7 +99,6 @@ export default {
         .get()
         .then(snapshot => {
           this.user2 = snapshot.data().Name;
-          console.log(this.user2);
         })
     },
 
@@ -109,7 +108,6 @@ export default {
         .get()
         .then(snapshot => {
           this.paragraphLength = snapshot.data().Length;
-          console.log(this.paragraphLength);
           this.updateValue();
         });
     },
