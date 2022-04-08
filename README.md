@@ -1,6 +1,10 @@
 # STDISCM-KeyboardWarrior
 
-## To Run:
+## To play online:
+
+stdiscm-keyboardwarrior.web.app
+
+## To Run Locally:
 Step 1: `npm install`
 
 Step 2: `npm run serve`
