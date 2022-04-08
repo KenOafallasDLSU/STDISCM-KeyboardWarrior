@@ -12,17 +12,17 @@ Step 3: go to localhost:8080
 Firebase (for Firestore)
 
 ### HTTP Client/API
-Axios <-- Love me some Axios
+Axios
 
 ### Styling
-Bootstrap-Vue <-- Use this pls
+Bootstrap-Vue
 
 Boostrap
 
 SASS
 
 ### Routing
-vue-router <-- important
+vue-router
 
 ### States
 vuex
